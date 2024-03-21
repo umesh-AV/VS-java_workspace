@@ -1,4 +1,4 @@
---> This v3 version contain 2 more options : mic button and speaker button
+--> This v3 version contain 2 more options : mic button and speaker button.
 
 --> This web application works as same as google translate app with both text and document as input and we can select source and target language (App will work , if we follow below steps)
 
