@@ -1,0 +1,31 @@
+--> This v3 version contain 2 more options : mic button and speaker button
+
+--> This web application works as same as google translate app with both text and document as input and we can select source and target language (App will work , if we follow below steps)
+
+--> But for document input option it supports only txt file formt (PDF is not supporting)
+--> To make that work we have to use v3beta1 google cloud/translate library in node-js code 
+--> v3beta1 code sample link : https://cloud.google.com/translate/docs/advanced/translate-documents
+	(github link for extra reference about package and modules : https://github.com/googleapis/google-cloud-node/tree/main/packages/google-cloud-translate/samples/generated/v3beta1)
+--> you can find document translat code sample in above link and for text translate you can find in the same website
+--> v3beta1 also have one drawback is that we can only give document from gcp bucket but not from local system
+
+
+Steps : 
+--> Enable Cloud translation API
+--> GCP's Cloud translation API node-js sample link: https://github.com/googleapis/nodejs-translate?tab=readme-ov-file
+--> Copy the js code and alter it as server.js
+--> Create the html file same as in index.html
+--> Save both js and html file in one folder change directory to that folder
+
+GCP commands: 
+	--> npm install @google-cloud/translate
+	--> npm install express
+	--> node server.js
+	--> (now click on the given link in terminal which shows like "Server running at http://localhost:3004")
+	--> commands to stop the server : 
+	--> sudo fuser -n tcp 3000
+			(3000/tcp:             2273)		
+	--> kill 2273
+	--> kill %1
+	--> even if you are facing server issues change the port number in the node js file (ex : like 3000 to 3006)
+	--> sudo fuser -n tcp 3000

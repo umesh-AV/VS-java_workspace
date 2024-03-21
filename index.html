@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Google Translate Clone</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-weight: 500;
+            margin: 0;
+            padding: 0;
+            background-color: azure;
+        }
+
+        h1 {
+            text-align: center;
+            margin-top: 0px;
+            background-color: #4285f4; /* Change background color #4285f4; */
+            color: white; /* Change text color */
+            padding: 20px 0; /* Add padding */
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 55vh;
+        }
+
+        .form-container {
+            max-width: 50%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        label,select {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 150px;
+            padding: 10px;
+            font-size: 18px;
+            resize: none;
+        }
+
+        select {
+            width: calc(100% - 20px);
+            padding: 5px;
+        }
+
+        button {
+            padding: 15px 20px; /* Increase padding */
+            background-color: #4285f4; /* Change background color */
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            align-self: center;
+            margin-top: 10px; /* Add margin-top */
+        }
+
+        button.translate {
+            background-color: #29952d;
+            border-radius: 5px;
+            padding: 15px 20px;
+            font-weight: 700;
+            font-size: large;
+        }
+
+        #translatedText {
+            width: 100%;
+            padding: 10px;
+            font-size: 18px;
+        }
+
+        .left {
+            margin-right: 40px;
+        }
+
+        .right {
+            margin-left: 300px;
+        }
+
+        .form-section {
+            margin-bottom: 20px;
+        }
+
+        #micButton,#speakerButton
+        {
+        font-size: 20px;
+        padding: 12px 14px;
+        }
+
+        #speakerButton:hover::after {
+            content: "Listen";
+            position: absolute;
+            background-color: rgba(248, 250, 227, 0.967);
+            color: rgb(14, 14, 14);
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 15px;
+        }
+
+        #micButton:hover::after {
+            content: "Translate by Voice";
+            position: absolute;
+            background-color: rgba(248, 250, 227, 0.967);
+            color: rgb(14, 14, 14);
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 15px;
+        }
+        
+
+    </style>
+</head>
+<body>
+    <center>
+        <h1>Google Translate APP <br> Using Cloud Translation API</h1><br>
+    </center>
+    <div class="container">
+        <div class="form-container left">
+            <div class="form-section">
+                <label for="sourceLanguage">Select source language:</label>
+                <select id="sourceLanguage"></select>
+            </div>
+            <div class="form-section">
+                <label for="sourceText">Enter text to translate:</label>
+                <textarea id="sourceText" placeholder="Enter text"></textarea>
+                <br>
+                <button onclick="chooseFile()">Choose File</button>
+                &nbsp;&nbsp;
+                <button id="micButton" onclick="micon()">
+                    <span id="micIcon"><i class="fa fa-microphone"></i></span>
+                </button>
+            </div>
+        </div>
+        <div class="form-container right">
+            <div class="form-section">
+                <label for="targetLanguage">Select target language:</label>
+                <select id="targetLanguage"></select>
+            </div>
+            <div class="form-section">
+                <label for="translatedText">Translated text:</label>
+                <textarea id="translatedText" placeholder="Translated text" readonly></textarea>
+                <br>
+                <button id="downloadBtn" onclick="downloadFile()" disabled>Download File</button>
+                &nbsp;&nbsp;
+                <button id="speakerButton" onclick="speak()">
+                    <span id="speakerIcon"><i class="fa fa-volume-up"></i></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <center>
+        <br><br>
+        <div class="form-section">
+            <button class="translate" onclick="translateText()">TRANSLATE</button>
+        </div>
+    </center>
+
+    <input type="file" id="fileInput" style="display: none;">
+
+    <script>
+        let selectedFile = null;
+
+        function chooseFile() {
+            const fileInput = document.getElementById('fileInput');
+            fileInput.click();
+        }
+
+        async function handleFileChange(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = async function(e) {
+                    const content = e.target.result;
+                    document.getElementById('sourceText').value = content;
+                };
+                reader.readAsText(file);
+            }
+        }
+
+        async function translateText() {
+            const sourceText = document.getElementById('sourceText').value;
+            const sourceLanguage = document.getElementById('sourceLanguage').value;
+            const targetLanguage = document.getElementById('targetLanguage').value;
+
+            if (!sourceText.trim() || !targetLanguage.trim()) {
+                alert('Please enter text and select languages.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/translate?text=${encodeURIComponent(sourceText)}&source=${sourceLanguage}&target=${targetLanguage}`);
+                const data = await response.json();
+
+                if (data && data.translation) {
+                    document.getElementById('translatedText').value = data.translation;
+                    document.getElementById('downloadBtn').disabled = false;
+                } else {
+                    alert('Translation failed. Please try again.');
+                }
+            } catch (error) {
+                console.error('Translation error:', error);
+                alert('Translation failed. Please try again.');
+            }
+            
+        }
+
+        async function downloadFile() {
+            if (!selectedFile) {
+                alert('No file is selected.');
+                return;
+            }
+            
+            const translatedText = document.getElementById('translatedText').value;
+            const updatedBlob = new Blob([translatedText], { type: 'text/plain' });
+            const downloadLink = document.createElement('a');
+            downloadLink.href = URL.createObjectURL(updatedBlob);
+            downloadLink.download = selectedFile.name.replace(/\.[^/.]+$/, "") + "_translated.txt";
+            downloadLink.click();
+        }
+
+        async function fetchLanguages() {
+            try {
+                const languages = [
+                { name: 'Amharic', code: 'am' },
+                    { name: 'Arabic', code: 'ar' },
+                    { name: 'Basque', code: 'eu' },
+                    { name: 'Bengali', code: 'bn' },
+                    { name: 'English (UK)', code: 'en-GB' },
+                    { name: 'Portuguese (Brazil)', code: 'pt-BR' },
+                    { name: 'Bulgarian', code: 'bg' },
+                    { name: 'Catalan', code: 'ca' },
+                    { name: 'Cherokee', code: 'chr' },
+                    { name: 'Croatian', code: 'hr' },
+                    { name: 'Czech', code: 'cs' },
+                    { name: 'Danish', code: 'da' },
+                    { name: 'Dutch', code: 'nl' },
+                    { name: 'English (US)', code: 'en' },
+                    { name: 'Estonian', code: 'et' },
+                    { name: 'Filipino', code: 'fil' },
+                    { name: 'Finnish', code: 'fi' },
+                    { name: 'French', code: 'fr' },
+                    { name: 'German', code: 'de' },
+                    { name: 'Greek', code: 'el' },
+                    { name: 'Gujarati', code: 'gu' },
+                    { name: 'Hebrew', code: 'iw' },
+                    { name: 'Hindi', code: 'hi' },
+                    { name: 'Hungarian', code: 'hu' },
+                    { name: 'Icelandic', code: 'is' },
+                    { name: 'Indonesian', code: 'id' },
+                    { name: 'Italian', code: 'it' },
+                    { name: 'Japanese', code: 'ja' },
+                    { name: 'Kannada', code: 'kn' },
+                    { name: 'Korean', code: 'ko' },
+                    { name: 'Latvian', code: 'lv' },
+                    { name: 'Lithuanian', code: 'lt' },
+                    { name: 'Malay', code: 'ms' },
+                    { name: 'Malayalam', code: 'ml' },
+                    { name: 'Marathi', code: 'mr' },
+                    { name: 'Norwegian', code: 'no' },
+                    { name: 'Polish', code: 'pl' },
+                    { name: 'Portuguese (Portugal)', code: 'pt-PT' },
+                    { name: 'Romanian', code: 'ro' },
+                    { name: 'Russian', code: 'ru' },
+                    { name: 'Serbian', code: 'sr' },
+                    { name: 'Chinese (PRC)', code: 'zh-CN' },
+                    { name: 'Slovak', code: 'sk' },
+                    { name: 'Slovenian', code: 'sl' },
+                    { name: 'Spanish', code: 'es' },
+                    { name: 'Swahili', code: 'sw' },
+                    { name: 'Swedish', code: 'sv' },
+                    { name: 'Tamil', code: 'ta' },
+                    { name: 'Telugu', code: 'te' },
+                    { name: 'Thai', code: 'th' },
+                    { name: 'Chinese (Taiwan)', code: 'zh-TW' },
+                    { name: 'Turkish', code: 'tr' },
+                    { name: 'Urdu', code: 'ur' },
+                    { name: 'Ukrainian', code: 'uk' },
+                    { name: 'Vietnamese', code: 'vi' },
+                    { name: 'Welsh', code: 'cy' }
+                ];
+
+                const sourceLanguageDropdown = document.getElementById('sourceLanguage');
+                const targetLanguageDropdown = document.getElementById('targetLanguage');
+
+                languages.forEach(language => {
+                    const option = document.createElement('option');
+                    option.value = language.code;
+                    option.textContent = language.name;
+                    sourceLanguageDropdown.appendChild(option);
+
+                    const targetOption = option.cloneNode(true);
+                    targetLanguageDropdown.appendChild(targetOption);
+                });
+            } catch (error) {
+                console.error('Error fetching supported languages:', error);
+                alert('Failed to fetch supported languages. Please try again.');
+            }
+        }
+
+        window.onload = function() {
+            fetchLanguages();
+            document.getElementById('fileInput').addEventListener('change', handleFileChange);
+        };
+
+        function micon() {
+            var micButton = document.getElementById('micButton');
+            micButton.innerHTML = '<span id="micIcon"><i class="fa fa-microphone"></i></span>';
+            
+            if (window.hasOwnProperty('webkitSpeechRecognition')) {
+                var recognition = new webkitSpeechRecognition();
+
+                recognition.continuous = false;
+                recognition.interimResults = false;
+
+                recognition.lang = 'en-US';
+                recognition.start();
+
+                recognition.onresult = function(e) {
+                    document.getElementById('sourceText').value = e.results[0][0].transcript;
+                    recognition.stop();
+                    micButton.innerHTML = '<span id="micIcon"><i class="fa fa-microphone"></i></span>';
+                };
+
+                recognition.onerror = function(e) {
+                    recognition.stop();
+                    micButton.innerHTML = '<span id="micIcon"><i class="fa fa-microphone"></i></span>';
+                }
+            }
+        }
+
+        function speak() {
+            var translatedText = document.getElementById('translatedText').value;
+            
+            // Check if translated text is empty
+            if (translatedText.trim() === "") {
+                alert("No translated text available to speak.");
+                return;
+            }
+            
+            // Create a new SpeechSynthesisUtterance instance
+            var utterance = new SpeechSynthesisUtterance(translatedText);
+
+            // Speak the text
+            window.speechSynthesis.speak(utterance);
+        }
+    </script>
+</body>
+</html>
